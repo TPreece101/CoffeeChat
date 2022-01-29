@@ -7,6 +7,8 @@ from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import delete
 
+from random_groups import divide_users
+
 load_dotenv()
 
 # Initializes your app with your bot token and signing secret
@@ -22,7 +24,7 @@ def update_home_tab(client, event, logger):
     client.views_publish(
       user_id=event['user'],
       # the view object that appears in the app home
-      view=get_home_view(event['user'])
+      view=get_home_view(db, event['user'])
     )
   
   except Exception as e:
@@ -32,6 +34,8 @@ def update_home_tab(client, event, logger):
 def group_subscribe_action(ack, body, logger):
     ack()
     logger.info(body)
+    selected_groups = parse_subscribe_actions(body.get('actions'))
+    update_subscriptions(db, selected_groups, body.get('user').get('id'))
 
 @app.action("add-group")
 def add_group_action(ack, body, client):
@@ -53,8 +57,17 @@ def handle_edit_group_modal_view_events(ack, body, client, logger):
     client.views_update(
         view_id=private_metadata.get('view_id'),
         hash=private_metadata.get('hash'),
-        view = get_home_view(body.get('user').get('id'))
+        view = get_home_view(db, body.get('user').get('id'))
     )
+
+@app.action("force-group")
+def handle_some_action(ack, body, logger):
+    ack()
+    group_id = body.get('actions')[0].get('value')
+    group = get_group(group_id)
+    users = get_subscribed_users(group_id)
+    random_groups = divide_users(users, group.group_size)
+    logger.info(body)
 
 @app.action("delete-group")
 def handle_delete_group_action(ack, body, client, logger):
@@ -66,7 +79,7 @@ def handle_delete_group_action(ack, body, client, logger):
     client.views_update(
         view_id=body.get('view').get('id'),
         hash=body.get('view').get('hash'),
-        view=get_home_view(body.get('user').get('id'))
+        view=get_home_view(db, body.get('user').get('id'))
     )
 
 @app.action("edit-group")
@@ -117,6 +130,7 @@ db = SQLAlchemy(flask_app)
 handler = SlackRequestHandler(app)
 
 from groups import add_group, delete_group, get_group
+from subscriptions import parse_subscribe_actions, update_subscriptions, get_subscribed_users
 from home import get_home_view
 from group_modal import get_group_modal_view, parse_group_modal_view
 
