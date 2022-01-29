@@ -1,5 +1,24 @@
 from app import db
 
+class UserSubscription(db.Model):
+    __tablename__ = 'user_subscriptions'
+
+    user_id = db.Column(db.String(), primary_key=True)
+    group_id = db.Column(db.String(), primary_key=True)
+    
+    def __init__(self, user_id, group_id):
+        self.user_id = user_id
+        self.group_id = group_id
+
+    def __repr__(self):
+        return f'<user_id {self.user_id} group_id {self.group_id}>'
+    
+    def serialize(self):
+        return {
+            'user_id': self.user_id, 
+            'group_id': self.group_id,
+        }
+
 class Group(db.Model):
     __tablename__ = 'groups'
 
