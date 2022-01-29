@@ -24,6 +24,16 @@ def get_admin_group_blocks(group):
 					"value": group.id,
 					"action_id": "edit-group"
 				},
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "Force Group Creation",
+                        "emoji": True
+                    },
+                    "value": group.id,
+                    "action_id": "force-group"
+                },
 				{
 					"type": "button",
 					"style": "danger",
