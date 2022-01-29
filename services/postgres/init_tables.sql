@@ -9,7 +9,7 @@ CREATE TABLE groups (
 );
 
 CREATE TABLE user_subscriptions (
-    id integer PRIMARY KEY,
     user_id varchar(256),
-    group_id integer
+    group_id varchar(40),
+    PRIMARY KEY(user_id, group_id)
 );
